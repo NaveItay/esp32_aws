@@ -1,5 +1,9 @@
 #include "DHTSensor.h"
 #include "NonBlockingDelay.h"
+#include "WiFiConnect.h"
+
+// Init WiFi
+WiFiConnect wifi;
 
 // Init DHT sensor
 #define DHTPIN 27
@@ -12,7 +16,17 @@ NonBlockingDelay dht_timer(DHT_INTERVAL);
 
 void setup() {
   Serial.begin(115200);
+
+  // DHT Sensor
   dht_timer.reset();
+
+// Load WiFi credentials from flash memory using SPIFFS, connect to WiFi, and print connection status. 
+  if (!wifi.loadCredentials("/wifi_config.json")) {
+    Serial.println("Failed to load Wi-Fi credentials");
+    return;
+  }
+  wifi.connect();
+  wifi.printWiFiStatus();
 }
 
 void loop() {
