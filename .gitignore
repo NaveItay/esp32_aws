@@ -6,4 +6,3 @@
 *.json
 src/secrets.h
 src/aws_secrets.h
-.what-is-aws-iot.jpg
