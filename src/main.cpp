@@ -1,12 +1,12 @@
 #include "DHTSensor.h"
 #include "NonBlockingDelay.h"
 #include "WiFiConnect.h"
+#include "config.h"
 
 // AWS IoT
-// #include "AWSCredentials.h"
 #include <WiFiClientSecure.h>
 #include "AWSIoT.h"
-#include "secrets.h"
+#include "aws_secrets.h"
 
 // Init WiFi
 WiFiConnect wifi;
@@ -14,18 +14,12 @@ WiFiConnect wifi;
 // Init AWS IoT
 WiFiClientSecure net = WiFiClientSecure();
 AwsIot awsIot(net, THINGNAME, AWS_CERT_RootCA, AWS_CERT_DeviceCRT, AWS_CERT_PRIVATE, AWS_IOT_ENDPOINT);
-#define AWS_IOT_PUBLISH_TOPIC    "esp32/pub"
-#define AWS_IOT_SUBSCRIBE_TOPIC1 "esp32/valve1"
 
 // Init DHT sensor
-#define DHTPIN 27
-#define isFahrenheit false
-#define DHT_INTERVAL 5000 // Reading interval (2000 ms = 2s)
 DHTSensor dht(DHTPIN);
 
 // Init NonBlockingDelay
-NonBlockingDelay dht_timer(DHT_INTERVAL);  // 2 seconds interval
-
+NonBlockingDelay dht_timer(DHT_INTERVAL);
 
 // function declarations
 void MQTTmessageHandler(char *topic, byte *payload, unsigned int length);
@@ -33,10 +27,12 @@ void MQTTmessageHandler(char *topic, byte *payload, unsigned int length);
 void setup() {
   Serial.begin(115200);
 
+  pinMode(RELAY1, OUTPUT);
+
   // reset timers
   dht_timer.reset();
 
-// Load WiFi credentials from flash memory using SPIFFS, connect to WiFi, and print connection status. 
+  // Load WiFi credentials from flash memory using SPIFFS, connect to WiFi, and print connection status. 
   if (!wifi.loadCredentials("/wifi_config.json")) {
     Serial.println("Failed to load Wi-Fi credentials");
     return;
@@ -55,8 +51,8 @@ void loop() {
     float temperature = 0;
     float humidity = 0;
 
-    if (dht.read(temperature, humidity, isFahrenheit)) {
-      char temp_unit = isFahrenheit ? 'F' : 'C';
+    if (dht.read(temperature, humidity, IS_FAHRENHEIT)) {
+      // char temp_unit = IS_FAHRENHEIT ? 'F' : 'C';
       // Serial.printf("Humidity: %.2f %%  Temperature: %.2f %c\n", humidity, temperature, temp_unit);
 
       // publish to AWS IoT Core using MQTT Protocol
@@ -69,9 +65,7 @@ void loop() {
   awsIot.mqttLoop();
 }
 
-
 void MQTTmessageHandler(char* topic, byte* payload, unsigned int length)
-
 {
   // We need to ensure the payload is null-terminated for printf to work correctly.
   // First, we need to create a new buffer of length + 1, then copy the payload into it, and finally, null-terminate it.
@@ -86,22 +80,14 @@ void MQTTmessageHandler(char* topic, byte* payload, unsigned int length)
   // Don't forget to delete the buffer when you're done to avoid a memory leak.
   delete[] nullTerminatedPayload;
  
-/*##################### Lamp 1 #####################*/
+  /*##################### Valve 1 #####################*/
   if ( strstr(topic, "esp32/valve1") )
   {
     StaticJsonDocument<200> doc;
     deserializeJson(doc, payload);
-    String Relay1 = doc["status"];
-    int r1 = Relay1.toInt();
-    if(r1==1)
-    {
-      digitalWrite(32, LOW);
-      Serial.println("Valve1 is ON");
-    }
-    else if(r1==0)
-    {
-      digitalWrite(32, HIGH);
-      Serial.println("Valve1 is OFF");
-    }
+    int r1 = doc["status"].as<int>(); // directly convert to integer
+
+    digitalWrite(RELAY1, r1 == 1 ? LOW : HIGH);
+    Serial.println(r1 == 1 ? "Valve1 is ON" : "Valve1 is OFF");
   }
 }
