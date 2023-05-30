@@ -44,5 +44,22 @@ void AwsIot::subscribe(const char* topic) {
 void AwsIot::publish(const char* topic, const JsonObject& payload) {
   char buffer[512];  // Buffer size depends on your payload
   serializeJson(payload, buffer);
+  
+  Serial.print("Topic: ");
+  Serial.print(topic);
+  Serial.print(" Payload: ");
+  Serial.println(buffer); // Buffer now contains the serialized JSON payload
+  
   _client.publish(topic, buffer);
 }
+
+void AwsIot::publishDHTData(const char* topic, float h, float t) {
+  StaticJsonDocument<200> doc;
+  doc["humidity"] = h;
+  doc["temperature"] = t;
+  
+  JsonObject obj = doc.as<JsonObject>();  // Convert StaticJsonDocument to JsonObject
+  
+  this->publish(topic, obj); 
+}
+

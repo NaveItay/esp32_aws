@@ -13,6 +13,7 @@ public:
   void setCallback(MQTT_CALLBACK_SIGNATURE);
   void subscribe(const char* topic);
   void publish(const char* topic, const JsonObject& payload);
+  void publishDHTData(const char* topic, float h, float t);
 private:
   PubSubClient _client;
   const char* _thingName;
