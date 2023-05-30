@@ -3,6 +3,7 @@
 
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
+#include <ArduinoJson.h>
 
 class AwsIot {
 public:
@@ -11,9 +12,10 @@ public:
   void mqttLoop();
   void setCallback(MQTT_CALLBACK_SIGNATURE);
   void subscribe(const char* topic);
+  void publish(const char* topic, const JsonObject& payload);
 private:
   PubSubClient _client;
-  const char* _thingName;  // add this line
+  const char* _thingName;
 };
 
 #endif // AWSIOT_H

@@ -40,3 +40,9 @@ void AwsIot::setCallback(MQTT_CALLBACK_SIGNATURE) {
 void AwsIot::subscribe(const char* topic) {
   _client.subscribe(topic);
 }
+
+void AwsIot::publish(const char* topic, const JsonObject& payload) {
+  char buffer[512];  // Buffer size depends on your payload
+  serializeJson(payload, buffer);
+  _client.publish(topic, buffer);
+}
