@@ -1,5 +1,5 @@
 # ESP32 AWS IoT Core Project
-![AWS IoT Core Diagram](what-is-aws-iot.jpg)
+![AWS IoT Core Diagram](.what-is-aws-iot.jpg)
 
 This project aims to connect an ESP32 to AWS IoT Core using MQTT to send sensor readings from a DHT sensor and control a relay module.
 
