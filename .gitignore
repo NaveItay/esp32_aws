@@ -6,3 +6,4 @@
 *.json
 src/secrets.h
 src/aws_secrets.h
+lib/config/aws_secrets.h
